@@ -86,6 +86,15 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
     fontColorTitle: "Font color and opacity",
     positioningText: "Label positioning",
     anchorPointText: "Anchor point",
+    anchorPointData:[['lt', 'Left-top'], 
+                    ['ct', 'Center-top'], 
+                    ['rt', 'Right-top'],
+                    ['lm', 'Left-center'],
+                    ['cm', 'Center'],
+                    ['rm', 'Right-center'],
+                    ['lb', 'Left-bottom'],
+                    ['cb', 'Center-bottom'],
+                    ['rb', 'Right-bottom']],
     displacementXText: "Displacement (X-direction)",
     displacementYText: "Displacement (Y-direction)",
     perpendicularOffsetText: "Perpendicular offset",
@@ -111,7 +120,7 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
 
         this.haloCache = {};
 
-        this.attributes.load();
+        //this.attributes.load();
 
         var defAttributesComboConfig = {
             xtype: "combo",
@@ -122,7 +131,7 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
             editable: false,
             triggerAction: "all",
             allowBlank: false,
-            displayField: "name",
+            displayField: "name_lv",
             valueField: "name",
             value: this.symbolizer.label && this.symbolizer.label.replace(/^\${(.*)}$/, "$1"),
             listeners: {
@@ -217,72 +226,7 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                 },
                 scope: this
             }
-        }, {
-            xtype: "fieldset",
-            title: this.graphicTitle,
-            checkboxToggle: true,
-            hideMode: 'offsets',
-            collapsed: !(this.symbolizer.fillColor || this.symbolizer.fillOpacity),
-            labelWidth: 70,
-            items: [{
-                xtype: "gxp_pointsymbolizer",
-                symbolizer: this.symbolizer,
-                border: false,
-                labelWidth: 70
-            }, this.createVendorSpecificField({
-                name: "graphic-resize",
-                xtype: "combo",
-                store: ["none", "stretch", "proportional"],
-                mode: 'local',
-                width: 100,
-                triggerAction: 'all',
-                fieldLabel: this.graphicResizeText
-            }), this.createVendorSpecificField({
-                name: "graphic-margin",
-                width: 100,
-                fieldLabel: this.graphicMarginText,
-                xtype: "textfield"
-            })],
-            listeners: {
-                collapse: function() {
-                    this.graphicCache = {
-                        externalGraphic: this.symbolizer.externalGraphic,
-                        fillColor: this.symbolizer.fillColor,
-                        fillOpacity: this.symbolizer.fillOpacity,
-                        graphicName: this.symbolizer.graphicName,
-                        pointRadius: this.symbolizer.pointRadius,
-                        rotation: this.symbolizer.rotation,
-                        strokeColor: this.symbolizer.strokeColor,
-                        strokeWidth: this.symbolizer.strokeWidth,
-                        strokeDashStyle: this.symbolizer.strokeDashStyle
-                    };
-                    delete this.symbolizer.externalGraphic;
-                    delete this.symbolizer.fillColor;
-                    delete this.symbolizer.fillOpacity;
-                    delete this.symbolizer.graphicName;
-                    delete this.symbolizer.pointRadius;
-                    delete this.symbolizer.rotation;
-                    delete this.symbolizer.strokeColor;
-                    delete this.symbolizer.strokeWidth;
-                    delete this.symbolizer.strokeDashStyle;
-                    this.fireEvent("change", this.symbolizer)
-                },
-                expand: function() {
-                    Ext.apply(this.symbolizer, this.graphicCache);
-                    /**
-                     * Start workaround for
-                     * http://projects.opengeo.org/suite/ticket/676
-                     */
-                    this.doLayout();
-                    /**
-                     * End workaround for
-                     * http://projects.opengeo.org/suite/ticket/676
-                     */
-                    this.fireEvent("change", this.symbolizer);
-                },
-                scope: this
-            }
-        }, {
+        },{
             xtype: "fieldset",
             title: this.haloText,
             checkboxToggle: true,
@@ -292,7 +236,7 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
             items: [{
                 xtype: "numberfield",
                 fieldLabel: this.sizeText,
-                anchor: "89%",
+                anchor: "100%",
                 allowNegative: false,
                 emptyText: OpenLayers.Renderer.defaultSymbolizer.haloRadius,
                 value: this.symbolizer.haloRadius,
@@ -316,8 +260,7 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                 },
                 defaultColor: OpenLayers.Renderer.defaultSymbolizer.haloColor,
                 checkboxToggle: false,
-                width: 190,
-                labelWidth: 60,
+                labelWidth: 70,
                 plugins: this.colorManager && [new this.colorManager()],
                 listeners: {
                     change: function(symbolizer) {
@@ -363,22 +306,12 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
             autoHeight: true,
             labelWidth: 75,
             defaults: {
-                width: 100
+                anchor:'100%'
             },
             items: [Ext.applyIf({
                 fieldLabel: this.anchorPointText,
                 value: this.symbolizer.labelAlign || "lb",
-                store: [
-                    ['lt', 'Left-top'], 
-                    ['ct', 'Center-top'], 
-                    ['rt', 'Right-top'],
-                    ['lm', 'Left-center'],
-                    ['cm', 'Center'],
-                    ['rm', 'Right-center'],
-                    ['lb', 'Left-bottom'],
-                    ['cb', 'Center-bottom'],
-                    ['rb', 'Right-bottom']
-                ],
+                store: this.anchorPointData,
                 listeners: {
                     select: function(combo, record) {
                         this.symbolizer.labelAlign = combo.getValue();
@@ -424,27 +357,6 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                     scope: this
                 }
             }]
-        }, {
-            xtype: "fieldset",
-            title: this.priorityText,
-            checkboxToggle: true,
-            collapsed: true,
-            autoHeight: true,
-            labelWidth: 50,
-            items: [Ext.applyIf({
-                fieldLabel: this.priorityText,
-                value: this.symbolizer.priority && this.symbolizer.priority.replace(/^\${(.*)}$/, "$1"),
-                allowBlank: true,
-                name: 'priority',
-                listeners: {
-                    select: function(combo, record) {
-                        this.symbolizer[combo.name] = "${" + record.get("name") + "}";
-                        this.fireEvent("change", this.symbolizer);
-                    },
-                    render: this.attachHelpToField,
-                    scope: this
-                }
-            }, this.attributesComboConfig)]
         }, {
             xtype: "fieldset",
             title: this.labelOptionsText,

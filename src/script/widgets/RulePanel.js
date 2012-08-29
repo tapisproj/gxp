@@ -147,7 +147,8 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
         
         if(!this.rule) {
             this.rule = new OpenLayers.Rule({
-                name: this.uniqueRuleName()
+                name: this.uniqueRuleName(),
+                symbolizers:[]
             });
         } else {
             if (!this.initialConfig.symbolType) {
@@ -212,6 +213,8 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
             title: this.labelsText,
             autoScroll: true,
             bodyStyle: {"padding": "10px"},
+            layout:"fit",
+            autoHeight: true,
             items: [{
                 xtype: "fieldset",
                 title: this.labelFeaturesText,
@@ -241,11 +244,9 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
                 items: [this.createHeaderPanel(), this.createSymbolizerPanel()]
             }, this.items[0], {
                 title: this.advancedText,
-                defaults: {
-                    style: {
-                        margin: "7px"
-                    }
-                },
+                bodyStyle: {"padding": "10px"},
+                layout:"fit",
+                autoHeight: true,
                 autoScroll: true,
                 items: [{
                     xtype: "fieldset",
@@ -287,25 +288,6 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
                         },
                         scope: this
                     }
-                }, {
-                    xtype: "fieldset",
-                    title: this.limitByConditionText,
-                    checkboxToggle: true,
-                    collapsed: !(this.rule && this.rule.filter),
-                    autoHeight: true,
-                    items: [this.filterBuilder],
-                    listeners: {
-                        collapse: function(){
-                            delete this.rule.filter;
-                            this.fireEvent("change", this, this.rule);
-                        },
-                        expand: function(){
-                            var changed = false;
-                            this.rule.filter = this.filterBuilder.getFilter();
-                            this.fireEvent("change", this, this.rule);
-                        },
-                        scope: this
-                    }
                 }]
             }];
         }
@@ -334,17 +316,17 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
 
     /** private: method[hasTextSymbolizer]
      */
-    hasTextSymbolizer: function() {
-        var candidate, symbolizer;
-        for (var i=0, ii=this.rule.symbolizers.length; i<ii; ++i) {
-            candidate = this.rule.symbolizers[i];
-            if (candidate instanceof OpenLayers.Symbolizer.Text) {
-                symbolizer = candidate;
-                break;
-            }
-        }
-        return symbolizer;
-    },
+    hasTextSymbolizer : function() {
+		var candidate, symbolizer;
+		for (var i = 0, ii = this.rule.symbolizers.length; i < ii; ++i) {
+			candidate = this.rule.symbolizers[i];
+			if (candidate instanceof OpenLayers.Symbolizer.Text) {
+				symbolizer = candidate;
+				break;
+			}
+		}
+		return symbolizer;
+	},
     
     /** private: method[getTextSymbolizer]
      *  Get the first text symbolizer in the rule.  If one does not exist,
@@ -403,33 +385,9 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
             defaults: {border: false},
             style: {"padding": "0.3em 0 0 1em"},
             items: [{
-                layout: "column",
-                defaults: {
-                    border: false,
-                    style: {"padding-right": "1em"}
-                },
-                items: [{
                     layout: "form",
-                    width: 150,
-                    items: [{
-                        xtype: "textfield",
-                        fieldLabel: this.nameText,
-                        anchor: "95%",
-                        value: this.rule && (this.rule.title || this.rule.name || ""),
-                        listeners: {
-                            change: function(el, value) {
-                                this.rule.title = value;
-                                this.fireEvent("change", this, this.rule);
-                            },
-                            scope: this
-                        }
-                    }]
-                }, {
-                    layout: "form",
-                    width: 70,
                     items: [this.symbolizerSwatch]
                 }]
-            }]
         };
     },
 
@@ -497,17 +455,17 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
      *  Determines the symbol type of the first symbolizer of a rule that is
      *  not a text symbolizer
      */
-    getSymbolTypeFromRule: function(rule) {
-        var candidate, type;
-        for (var i=0, ii=rule.symbolizers.length; i<ii; ++i) {
-            candidate = rule.symbolizers[i];
-            if (!(candidate instanceof OpenLayers.Symbolizer.Text)) {
-                type = candidate.CLASS_NAME.split(".").pop();
-                break;
-            }
-        }
-        return type;
-    }
+    getSymbolTypeFromRule : function(rule) {
+		var candidate, type;
+		for (var i = 0, ii = rule.symbolizers.length; i < ii; ++i) {
+			candidate = rule.symbolizers[i];
+			if (!(candidate instanceof OpenLayers.Symbolizer.Text)) {
+				type = candidate.CLASS_NAME.split(".").pop();
+				break;
+			}
+		}
+		return type;
+	}
 
 });
 
