@@ -29,6 +29,7 @@ Ext.namespace("gxp");
 gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
     
     /** i18n **/
+    closeButtonText: 'Close',
     closeMsgTitle: 'Save Changes?',
     closeMsg: 'This feature has unsaved changes. Would you like to save your changes?',
     deleteMsgTitle: 'Delete Feature?',
@@ -44,6 +45,7 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
     
     /** private config overrides **/
     layout: "fit",
+    autoScroll: true,
     
     /** api: config[feature]
      *  ``OpenLayers.Feature.Vector``|``GeoExt.data.FeatureRecord`` The feature
@@ -281,6 +283,13 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
             scope: this
         });
         
+        this.closeButton = new Ext.Button({
+            text: this.closeButtonText,
+            iconCls: "cancel",
+            handler: function() {this.close()},
+            scope: this
+        });
+        
         this.plugins = [Ext.apply({
             feature: feature,
             schema: this.schema,
@@ -296,7 +305,8 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
                 this.editButton,
                 this.deleteButton,
                 this.saveButton,
-                this.cancelButton
+                this.cancelButton,
+                '->',this.closeButton
             ]
         });
         
@@ -359,6 +369,7 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
 
             this.editButton.hide();
             this.deleteButton.hide();
+            this.closeButton.hide();
             this.saveButton.show();
             this.cancelButton.show();
             
@@ -392,6 +403,8 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
             var feature = this.feature;
             if (feature.state === this.getDirtyState()) {
                 if (save === true) {
+                    //call setFeature state to trigger featuremodified event on layer
+                	this.setFeatureState(feature.state);
                     this.fireEvent("beforefeaturemodified", this, feature);
                     //TODO When http://trac.osgeo.org/openlayers/ticket/3131
                     // is resolved, remove the if clause below
@@ -429,6 +442,7 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
                 this.cancelButton.hide();
                 this.saveButton.hide();
                 this.editButton.show();
+                this.closeButton.show();
                 this.allowDelete && this.deleteButton.show();
             }
             
@@ -445,7 +459,7 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
                 if(button === "yes") {
                     this.setFeatureState(OpenLayers.State.DELETE);
                     this.fireEvent("featuremodified", this, this.feature);
-                    this.close();
+                    //this.close();
                 }
             },
             scope: this,

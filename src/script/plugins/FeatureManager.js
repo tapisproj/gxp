@@ -134,6 +134,11 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
      *  ``Boolean`` If set to true, geometries will be casted to Multi
      *  geometries before writing. No casting will be done for reading.
      */
+     
+    /** api: config[proxy]
+     *  config ``Object`` or :class:`GeoExt.data.ProtocolProxy` If set will be used
+     *  instead of default :class:`gxp.data.WFSProtocolProxy`.
+     */
     
     /** private: property[toolsShowingLayer]
      *  ``Object`` keyed by tool id - tools that currently need to show the
@@ -622,7 +627,7 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                 if (this.paging) {
                     this.setPage();
                 } else {
-                    this.featureStore.load();
+                    this.featureStore.load({sortby: this.sortBy});
                 }
             }
         }
@@ -687,7 +692,8 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                         "xsd:date": "date",
                         "xsd:string": "string",
                         "xsd:float": "float",
-                        "xsd:double": "float"
+                        "xsd:double": "float",
+                        "xsd:decimal": "float"
                     };
                     schema.each(function(r) {
                         var match = geomRegex.exec(r.get("type"));
@@ -699,7 +705,7 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                             var type = types[r.get("type")];
                             var field = {
                                 name: r.get("name"),
-                                type: types[type]
+                                type: type
                             };
                             //TODO consider date type handling in OpenLayers.Format
                             if (type == "date") {
@@ -724,7 +730,7 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                     }, protocolOptions));
                     this.featureStore = new gxp.data.WFSFeatureStore(Ext.apply({
                         fields: fields,
-                        proxy: {
+                        proxy: this.proxy || {
                             protocol: {
                                 outputFormat: this.format,
                                 multi: this.multi
@@ -1053,7 +1059,7 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                 // BBOX filters
                 this.featureStore.load({callback: function() {
                     callback && callback.call(scope);
-                }});
+                },sortby: this.sortBy});
                 return;
             }
             if (this.fireEvent("beforesetpage", this, condition, callback, scope) !== false) {
@@ -1103,7 +1109,7 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                         this.fireEvent("setpage", this, condition, callback, scope, pageIndex, this.pages.length);
                         this.featureStore.load({callback: function() {
                             callback && callback.call(scope, page);
-                        }});
+                        },sortby: this.sortBy});
                     }, this
                 );
             }
@@ -1117,9 +1123,10 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                             this.numPages = Math.ceil(this.numberOfFeatures/this.maxFeatures);
                             this.pageIndex = 0;
                             this.fireEvent("setpage", this, condition, callback, scope, this.pageIndex, this.numPages);
+                            this.featureStore.setOgcFilter(this.filter);
                             this.featureStore.load({output: "object", callback: function() {
                                 callback && callback.call(scope);
-                            }});
+                            },sortby: this.sortBy});
                         },
                         scope: this
                     });
@@ -1134,7 +1141,8 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                         }
                         var startIndex = this.pageIndex*this.maxFeatures;
                         this.fireEvent("setpage", this, condition, callback, scope, this.pageIndex, this.numPages);
-                        this.featureStore.load({startIndex: startIndex, callback: function() {
+                        this.featureStore.setOgcFilter(this.filter);
+                        this.featureStore.load({startIndex: startIndex,  sortby: this.sortBy, callback: function() {
                             callback && callback.call(scope);
                         }});
                     }
