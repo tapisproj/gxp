@@ -491,7 +491,7 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
                 }
             }
         }
-        return change;
+        //return change;
     },
     
     /** private: method[setSchema]
