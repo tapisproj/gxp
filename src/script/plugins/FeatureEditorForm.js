@@ -142,7 +142,8 @@ gxp.plugins.FeatureEditorForm = Ext.extend(Ext.FormPanel, {
                     fieldCfg.value = this.feature.attributes[name];
                 }
                 if (fieldCfg.value && fieldCfg.xtype == "checkbox") {
-                    fieldCfg.checked = Ext.isBoolean(fieldCfg.value) ? fieldCfg.value : (fieldCfg.value === "true");
+                    fieldCfg.checked = Ext.isBoolean(fieldCfg.value) ? fieldCfg.value : (fieldCfg.value === "true" || fieldCfg.value == "1");
+                    fieldCfg.boxLabel = "";
                 }
                 if (fieldCfg.value && fieldCfg.xtype == "gxp_datefield") {
                     fieldCfg.value = new Date(fieldCfg.value*1000);
