@@ -99,8 +99,7 @@ gxp.plugins.FeatureEditorForm = Ext.extend(Ext.FormPanel, {
         this.addOutput();
     },
     
-    addOutput: function(){
-           
+    createFields: function(){
         if (!this.excludeFields) {
             this.excludeFields = [];
         }
@@ -186,7 +185,12 @@ gxp.plugins.FeatureEditorForm = Ext.extend(Ext.FormPanel, {
                 }
             }
         }
-         this.add(this.reorderFields(fields));
+        return this.reorderFields(fields);
+    },
+    
+    addOutput: function(){
+        var fields = this.createFields();
+        this.add(fields);
     },
 
     /** private: method[reorderFields]
