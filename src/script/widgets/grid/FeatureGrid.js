@@ -226,11 +226,11 @@ gxp.grid.FeatureGrid = Ext.extend(Ext.grid.GridPanel, {
                 switch (type) {
                     case "date":
                         format = this.dateFormat;
+                        xtype = "datecolumn";
                         break;
-                    case "datetime":
+                    case "dateTime":
                         format = format ? format : this.dateFormat + " " + this.timeFormat;
-                        xtype = undefined;
-                        renderer = getRenderer(format);
+                        xtype = "datecolumn";
                         break;
                     case "boolean":
                         xtype = "booleancolumn";
