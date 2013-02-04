@@ -81,13 +81,14 @@ gxp.plugins.FeatureEditorForm = Ext.extend(Ext.FormPanel, {
     /** private: method[initComponent]
      */
     initComponent : function() {
-        this.defaults = Ext.apply(this.defaults || {}, {readOnly: true});
+        this.defaults = Ext.apply(this.defaults || {}, {disabled: true});
 
         this.listeners = {
             clientvalidation: function(panel, valid) {
                 if (valid && this.getForm().isDirty()) {
                     Ext.apply(this.feature.attributes, this.getForm().getFieldValues());
-                    this.featureEditor.setFeatureState(this.featureEditor.getDirtyState());
+                    //this.featureEditor.setFeatureState(this.featureEditor.getDirtyState());
+                    this.feature.state = this.featureEditor.getDirtyState();
                 }
             },
             scope: this
@@ -95,6 +96,10 @@ gxp.plugins.FeatureEditorForm = Ext.extend(Ext.FormPanel, {
 
         gxp.plugins.FeatureEditorForm.superclass.initComponent.call(this);
 
+        this.addOutput();
+    },
+    
+    createFields: function(){
         if (!this.excludeFields) {
             this.excludeFields = [];
         }
@@ -160,7 +165,6 @@ gxp.plugins.FeatureEditorForm = Ext.extend(Ext.FormPanel, {
                 }
                 fields[lower] = fieldCfg;
             }, this);
-            this.add(this.reorderFields(fields));
         } else {
             fields = {};
             for (var name in this.feature.attributes) {
@@ -180,8 +184,13 @@ gxp.plugins.FeatureEditorForm = Ext.extend(Ext.FormPanel, {
                     fields[lower] = fieldCfg;
                 }
             }
-            this.add(this.reorderFields(fields));
         }
+        return this.reorderFields(fields);
+    },
+    
+    addOutput: function(){
+        var fields = this.createFields();
+        this.add(fields);
     },
 
     /** private: method[reorderFields]
@@ -237,17 +246,17 @@ gxp.plugins.FeatureEditorForm = Ext.extend(Ext.FormPanel, {
      *  as readonly provided we are not in readOnly mode.
      */
     onStartEdit: function() {
-        this.getForm().items.each(function(field){
-             this.readOnly !== true && field.setReadOnly(false);
-        }, this);
+        this.getForm().items.each(function() {
+                    this.readOnly !== true && this.enable();
+                });
     },
 
     /** private: method[onStopEdit]
      *  When editing stops in the feature edit popup, mark all fields as read only.
      */
     onStopEdit: function() {
-        this.getForm().items.each(function(field){
-             field.setReadOnly(true);
+       this.getForm().items.each(function(){
+            this.disable();
         });
     },
 

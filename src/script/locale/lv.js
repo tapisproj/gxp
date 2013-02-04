@@ -205,6 +205,7 @@ GeoExt.Lang.add("lv", {
     },
 
     "gxp.FeatureEditPopup.prototype": {
+        closeButtonText: 'Aizvērt',
         closeMsgTitle: "Saglabāt izmaiņas?",
         closeMsg: "Objektam ir izdarītas izmaiņas. Vai saglabāt?",
         deleteMsgTitle: "Dzēst objektu?",

@@ -98,6 +98,10 @@ gxp.grid.FeatureGrid = Ext.extend(Ext.grid.GridPanel, {
      */
     layer: null,
     
+     /** api: config[extraColumns]
+      *  ``Array`` add extra columns (for example row actions) which are not in schema.
+      */
+    
     /** api: config[columnsSortable]
      *  ``Boolean`` Should fields in the grid be sortable? Default is true.
      */
@@ -205,8 +209,13 @@ gxp.grid.FeatureGrid = Ext.extend(Ext.grid.GridPanel, {
                 return date ? date.format(format) : value;
             };
         }
-        var columns = [],
-            customEditors = this.customEditors || {},
+        var columns = [];
+        if(this.extraColumns){
+            for (var i = 0; i < this.extraColumns.length; i++) {
+                columns.push(this.extraColumns[i]);
+            }
+        }
+        var customEditors = this.customEditors || {},
             customRenderers = this.customRenderers || {},
             name, type, xtype, format, renderer;
         (this.schema || store.fields).each(function(f) {
@@ -217,11 +226,11 @@ gxp.grid.FeatureGrid = Ext.extend(Ext.grid.GridPanel, {
                 switch (type) {
                     case "date":
                         format = this.dateFormat;
+                        xtype = "datecolumn";
                         break;
-                    case "datetime":
+                    case "dateTime":
                         format = format ? format : this.dateFormat + " " + this.timeFormat;
-                        xtype = undefined;
-                        renderer = getRenderer(format);
+                        xtype = "datecolumn";
                         break;
                     case "boolean":
                         xtype = "booleancolumn";
@@ -255,7 +264,7 @@ gxp.grid.FeatureGrid = Ext.extend(Ext.grid.GridPanel, {
                         (this.propertyNames[name] || name) : name,
                     sortable: this.columnsSortable,
                     menuDisabled: this.columnMenuDisabled,
-                    xtype: xtype,
+                    xtype: customRenderers[name] ? null : xtype,
                     editor: customEditors[name] || {
                         xtype: 'textfield'
                     },
