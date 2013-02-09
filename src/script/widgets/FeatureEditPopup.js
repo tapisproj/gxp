@@ -248,7 +248,9 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
             text: this.editButtonText,
             tooltip: this.editButtonTooltip,
             iconCls: "edit",
-            handler: this.startEditing,
+            handler: function() {
+                this.startEditing();
+            },
             scope: this
         });
         
