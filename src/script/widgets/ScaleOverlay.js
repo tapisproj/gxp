@@ -123,7 +123,7 @@ gxp.ScaleOverlay = Ext.extend(Ext.Panel, {
         }, this);
         if (scale.length > 0) {
             scale = scale.items[0];
-            this.zoomSelector.setValue("1 : " + parseInt(scale.data.scale, 10));
+            this.zoomSelector.setValue("1 : " + (Math.round(parseFloat(scale.data.scale) / 50) * 50));
         } else {
             if (!this.zoomSelector.rendered) {
                 return;
@@ -142,7 +142,7 @@ gxp.ScaleOverlay = Ext.extend(Ext.Panel, {
         });
         this.zoomSelector = new Ext.form.ComboBox({
             emptyText: this.zoomLevelText,
-            tpl: '<tpl for="."><div class="x-combo-list-item">1 : {[parseInt(values.scale)]}</div></tpl>',
+            tpl: '<tpl for="."><div class="x-combo-list-item">1 : {[(Math.round(parseFloat(values.scale) / 50) * 50)]}</div></tpl>',
             editable: false,
             triggerAction: 'all',
             mode: 'local',
