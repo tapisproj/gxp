@@ -744,7 +744,7 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                                                 response.exceptionReport || {}, msg, records);
                                             // only show dialog if there is no listener registered
                                             if (featureManager.hasListener("exception") === false && 
-                                                featureStore.events["exception"].listeners.length<=1) {
+                                                featureStore.events["exception"].listeners.length < 1) {
                                                     Ext.Msg.show({
                                                         title: this.exceptionTitle,
                                                         msg: msg,
