@@ -380,7 +380,9 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
 
             this.modifyControl = new OpenLayers.Control.ModifyFeature(
                 this.feature.layer,
-                {standalone: true, vertexRenderIntent: this.vertexRenderIntent}
+                {standalone: true, vertexRenderIntent: this.vertexRenderIntent, 
+                mode:OpenLayers.Control.ModifyFeature.RESHAPE | 
+                OpenLayers.Control.ModifyFeature.DRAG }
             );
             this.feature.layer.map.addControl(this.modifyControl);
             this.modifyControl.activate();
