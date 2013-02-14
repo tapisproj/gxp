@@ -105,10 +105,6 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
      *  Tooltip string for zoom to page extent action (i18n).
      */
     zoomPageExtentTip: "Zoom to page extent",
-    
-    refreshButtonTip:"Refresh page",
-    
-    alreadyEditingWarningText:"Dati jau tiek laboti. Vai aizvērt esošo labošanas logu?",
 
     /** api: config[nextPageTip]
      *  ``String``
@@ -128,20 +124,6 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
      */
     totalMsg: "Features {1} to {2} of {0}",
 
-    /** api: config[featureGrid]
-     * FeatureGrid widget that this plugin creates
-     */
-    featureGrid: null,
-    
-    /** api: config[selectOnVisible]
-     * Use select control on map for selecting only visible features
-     */
-    selectOnVisible: false,
-    
-    featureEditor: null,
-    
-    editing: false,
-    
     /** private: method[displayTotalResults]
      */
     displayTotalResults: function() {
@@ -168,55 +150,8 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
         this.selectControl = new OpenLayers.Control.SelectFeature(
             featureManager.featureLayer, this.initialConfig.controlOptions
         );
-        
-        if(this.featureEditor){
-        	//reuse selectControl
-        	var featureEditor = this.target.tools[this.featureEditor];
-	        if (!featureEditor) {
-	            throw new Error("Unable to access feature manager by id: " + this.featureEditor);
-	        }
-	        
-	        featureEditor.selectControl = this.selectControl;
-	        featureEditor.on({
-	        	"featureeditable": function(editor, feature, startedit){
-	        		if(startedit && !this.editing){
-	        			this.featureGrid.selModel.unbind();
-		        		this.editing = true;
-	        		}else if(!startedit && this.editing){
-	        			this.featureGrid.selModel.bind(this.selectControl);
-		        		this.editing = false;
-	        		}
-	        	},
-	        	scope:this
-	        });
-        }
-        
-        smCfg={
-                rememberSelectedRow: function(model, row, record){
-			 		if(record.getFeature()!=null){
-			 			model.selectedFid =  record.getFeature().fid;
-			 		}
-			 	},
-			 	clearRememberedRow: function(model, row, record){
-			 		model.selectedFid = null;
-			 	},
-			 	selectPrevRow: function(){
-			 		if(this.selectedFid!=null){
-			 			var sm = this;
-			 			this.grid.getStore().each(function (rec){
-							
-							if(rec.getFeature()!=null && sm.selectedFid == rec.getFeature().fid){
-								sm.selectRecords([rec]);
-								sm.grid.getView().focusRow(sm.grid.store.indexOf(rec));
-								return false;
-							}
-						});
-			 		}
-			 	}
-        }
-        
         if (this.selectOnMap) {
-             if (featureManager.paging && !this.selectOnVisible) {
+             if (this.autoLoadFeature || (featureManager.paging && featureManager.pagingType === gxp.plugins.FeatureManager.QUADTREE_PAGING)) {
                 this.selectControl.events.on({
                     "activate": function() {
                         map.events.register(
@@ -232,12 +167,11 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                 });
             }
             map.addControl(this.selectControl);
-            smCfg = Ext.apply(smCfg,{
-                selectControl: this.selectControl,
-                autoActivateControl: false
-            });
+            smCfg = {
+                selectControl: this.selectControl
+            };
         } else {
-            smCfg = Ext.apply(smCfg,{
+            smCfg = {
                 selectControl: this.selectControl,
                 singleSelect: false,
                 autoActivateControl: false,
@@ -249,7 +183,7 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                     },
                     scope: this
                 }
-            });
+            };
         }
         this.displayItem = new Ext.Toolbar.TextItem({});
         config = Ext.apply({
@@ -258,7 +192,7 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
             sm: new GeoExt.grid.FeatureSelectionModel(smCfg),
             autoScroll: true,
             columnMenuDisabled: !!featureManager.paging,
-            bbar: (featureManager.paging ? [ {xtype: 'tbspacer', width: 20},{
+            bbar: (featureManager.paging ? [{
                 iconCls: "x-tbar-page-first",
                 ref: "../firstPageButton",
                 tooltip: this.firstPageTip,
@@ -339,12 +273,6 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                         scope: this
                     });
                 },
-                rowdblclick : function(grid, rowIndex){
-                	if(this.featureEditor){
-                		var rec = grid.store.getAt(rowIndex);
-		    			this.editFeature(rec.getFeature());
-                	}
-                },
                 contextmenu: function(event) {
                     if (featureGrid.contextMenu.items.getCount() > 0) {
                         var rowIndex = featureGrid.getView().findRowIndex(event.getTarget());
@@ -391,17 +319,6 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
             });
             featureGrid.ignoreFields = ignoreFields;
             featureGrid.setStore(featureManager.featureStore, schema);
-            
-            featureGrid.selModel.on("rowselect", smCfg.rememberSelectedRow, this);
-            featureGrid.selModel.on("rowdeselect",  smCfg.clearRememberedRow, this);
-            
-            featureManager.featureStore.on("load", function(st){
-							this.featureGrid.selModel.selectPrevRow();
-					},this, {delay: 500});
-					
-
-            this.fireEvent("layerchange", this, null);
-            
             if (!featureManager.featureStore) {
                 // not a feature layer, reset toolbar
                 featureGrid.lastPageButton.disable();
@@ -417,43 +334,8 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
             onLayerChange.call(this);
         } 
         featureManager.on("layerchange", onLayerChange, this);
-        this.featureGrid = featureGrid;        
+        
         return featureGrid;
-    },
-    
-    editFeature: function(feature) {
-        var featureEditor = this.target.tools[this.featureEditor];
-        var edit = function() {
-            //also select rec
-            var sm = this.featureGrid.selModel;
-            this.featureGrid.getStore().each(function(rec) {
-                        if (rec.getFeature() == feature) {
-                            sm.selectRecords([rec]);
-                            return false;
-                        }
-                    });
-            featureEditor.onFeatureEdit(feature);
-        }
-        if (this.editing) {
-            Ext.MessageBox.show({
-                        msg: this.alreadyEditingWarningText,
-                        buttons: Ext.MessageBox.YESNOCANCEL,
-                        fn: function(btn) {
-                            if (btn == "yes") {
-                                if(featureEditor.popup){
-                                	 featureEditor.popup.on("close", edit, this, {single: true});
-                                	 featureEditor.popup.close();
-                                }else{
-                                	edit.call(this);
-                                }
-                            }
-                        },
-                        scope: this,
-                        icon: Ext.MessageBox.WARNING
-                    });
-        } else {
-            edit.call(this);
-        }
     }
                 
 });
