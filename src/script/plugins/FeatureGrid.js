@@ -311,13 +311,11 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
         });
                 
         function onLayerChange() {
-            var schema = featureManager.schema,
-                ignoreFields = ["feature", "state", "fid"];
+            var schema = featureManager.schema;
             //TODO use schema instead of store to configure the fields
             schema && schema.each(function(r) {
-                r.get("type").indexOf("gml:") == 0 && ignoreFields.push(r.get("name"));
+                r.get("type").indexOf("gml:") == 0 && featureGrid.ignoreFields.push(r.get("name"));
             });
-            featureGrid.ignoreFields = ignoreFields;
             featureGrid.setStore(featureManager.featureStore, schema);
             if (!featureManager.featureStore) {
                 // not a feature layer, reset toolbar
