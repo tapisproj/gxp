@@ -701,9 +701,10 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                                 }
                                 if (feature === this.autoLoadedFeature) {
                                     if (feature.layer) {
-                                        feature.layer.removeFeatures([feature]);
+                                        feature.layer.destroyFeatures([feature]);
                                     }
                                     this.autoLoadedFeature = null;
+                                    featureStore.removed = [];
                                 }
                             },
                             "featuremodified": function(popup, feature) {
