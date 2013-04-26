@@ -11,15 +11,15 @@ GeoExt.Lang.add("lv", {
     "gxp.plugins.AddLayers.prototype": {
         addActionMenuText: "Pievienot slāņus",
         addActionTip: "Pievienot slāņus",
-        addServerText: "Pievienot jaunu WMS serveri",
+        addServerText: "Pievienot jaunu WMS/WFS serveri",
         addButtonText: "Pievienot",
         addButtonToBackgroundText: "Pievienot fonā",
         untitledText: "Bez nosaukuma",
-        addLayerSourceErrorText: "Neizdevās iegūt WMS aprakstu ({msg}).\nPārbaudiet ievadīto adresi.",
+        addLayerSourceErrorText: "Neizdevās iegūt WMS/WFS aprakstu ({msg}).\nPārbaudiet ievadīto adresi.",
         availableLayersText: "Pieejamie slāņi",
         expanderTemplateText: "<p><b>Apraksts:</b> {abstract}</p>",
         panelTitleText: "Nosaukums",
-        layerSelectionText: "Apskatīt pieejamos datus no:",
+        layerSelectionText: "Pieejamie dati no:",
         doneText: "Labi",
         uploadText: "Augšupielādēt slāņus",
         searchText: "Meklēt slāņus"
@@ -407,8 +407,9 @@ GeoExt.Lang.add("lv", {
     "gxp.NewSourceDialog.prototype": {
         title: "Pievienot jaunu serveri...",
         cancelText: "Atcelt",
-        addServerText: "Pievienot serveri",
-        invalidURLText: "Ievadiet WMS servisa adresi (piemēram, http://example.com/geoserver/wms)",
+        addServerText: "Pievienot WMS",
+        addServerWFSText: "Pievienot WFS",
+        invalidURLText: "Ievadiet WMS vai WFS servisa adresi (piemēram, http://example.com/geoserver/wms)",
         contactingServerText: "Savienojas ar serveri..."
     },
 

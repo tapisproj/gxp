@@ -505,10 +505,10 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                         cmp.ownerCt.hide();
                     }
                 },
-                "urlselected": function(newSourceDialog, url) {
+                "urlselected": function(newSourceDialog, url, wfs, maxFeatures) {
                     newSourceDialog.setLoading();
                     this.target.addLayerSource({
-                        config: {url: url}, // assumes default of gx_wmssource
+                        config: {url: url, ptype : wfs===true?"geokods_wfssource":"gxp_wmssource", maxFeatures: maxFeatures},
                         callback: function(id) {
                             // add to combo and select
                             var record = new sources.recordType({

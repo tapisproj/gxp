@@ -38,7 +38,13 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
      *  ``String``
      *  Text for add server button (i18n).
      */
-    addServerText: "Add Server",
+    addServerText: "Add WMS Server",
+    
+    /** api: config[addServerWFSText]
+     *  ``String``
+     *  Text for add server button (i18n).
+     */   
+    addServerWFSText: "Add WFS Server",
     
     /** api: config[invalidURLText]
      *  ``String``
@@ -77,7 +83,7 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
         this.urlTextField = new Ext.form.TextField({
             fieldLabel: "URL",
             allowBlank: false,
-            width: 240,
+            anchor: '100%',
             msgTarget: "under",
             validator: this.urlValidator.createDelegate(this),
             listeners: {
@@ -89,13 +95,24 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
                 scope: this
             }
         });
+        
+        this.maxWFSFeaturesField = new Ext.form.NumberField({
+            fieldLabel: "WFS max",
+            allowBlank: false,
+            anchor: '50%',
+            value: 1000
+        });
 
         this.form = new Ext.form.FormPanel({
             items: [
-                this.urlTextField
+                this.urlTextField, this.maxWFSFeaturesField, {
+                         xtype: 'displayfield',
+                         value: "vienā WFS pieprasījumā maksimālais atgriezto objektu skaits",
+                         cls : "geokods-infofield-msg"
+                       }
             ],
             border: false,
-            labelWidth: 30,
+            labelWidth: 60,
             bodyStyle: "padding: 5px",
             autoWidth: true,
             autoHeight: true,
@@ -118,6 +135,14 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
                 text: this.addServerText,
                 iconCls: "add",
                 handler: this.addServer,
+                scope: this
+            }),
+            new Ext.Button({
+                text: this.addServerWFSText,
+                iconCls: "add",
+                handler: function() {
+                    this.addServer(true);
+                },
                 scope: this
             })
         ];
@@ -150,11 +175,11 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
     
     /** private: method[addServer]
      */
-    addServer: function() {
+    addServer: function(wfs) {
         // Clear validation before trying again.
         this.error = null;
         if (this.urlTextField.validate()) {
-            this.fireEvent("urlselected", this, this.urlTextField.getValue());
+            this.fireEvent("urlselected", this, this.urlTextField.getValue(), wfs === true, this.maxWFSFeaturesField.getValue());
         }
     },
     
@@ -165,6 +190,7 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
         // Reset values so it looks right the next time it pops up.
         this.error = null;
         this.urlTextField.reset();
+        this.maxWFSFeaturesField.reset();
         this.loadMask.hide();
     },
     
