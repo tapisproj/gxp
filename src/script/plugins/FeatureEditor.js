@@ -669,6 +669,12 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                     this.fireEvent("featureeditable", this, feature, true);
                 }
                 var featureManager = this.getFeatureManager();
+                //raise edit layer, else sometimes it appears under other layers
+                var layerIndex = this.target.mapPanel.map.getLayerIndex(featureManager.featureLayer);
+                this.target.mapPanel.map.setLayerIndex(featureManager.featureLayer, Number.POSITIVE_INFINITY);
+                /*if(layerIndex > 0){
+                    this.target.mapPanel.map.setLayerIndex(featureManager.featureLayer, 0);
+                }*/
                 var featureStore = featureManager.featureStore;
                 if(this._forcePopupForNoGeometry === true || (this.selectControl.active && feature.geometry !== null)) {
                     // deactivate select control so no other features can be
@@ -686,7 +692,7 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                         readOnly: this.readOnly,
                         fields: this.fields,
                         excludeFields: this.excludeFields,
-                        editing: feature.state === OpenLayers.State.INSERT,
+                        editing: feature.state === OpenLayers.State.INSERT || feature.editing===true,
                         schema: this.schema,
                         allowDelete: true,
                         width: this.width,
@@ -701,9 +707,10 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                                 }
                                 if (feature === this.autoLoadedFeature) {
                                     if (feature.layer) {
-                                        feature.layer.removeFeatures([feature]);
+                                        feature.layer.destroyFeatures([feature]); 
                                     }
                                     this.autoLoadedFeature = null;
+                                    featureStore.removed = []; 
                                 }
                             },
                             "featuremodified": function(popup, feature) {
