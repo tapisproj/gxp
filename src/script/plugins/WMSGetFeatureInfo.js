@@ -100,6 +100,9 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
     addActions: function() {
         this.popupCache = {};
         
+        var updateInfo;
+        var infoControls = {};
+        
         var actions = gxp.plugins.WMSGetFeatureInfo.superclass.addActions.call(this, [{
             tooltip: this.infoActionTip,
             iconCls: "gxp-icon-getfeatureinfo",
@@ -108,75 +111,92 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
             enableToggle: true,
             allowDepress: true,
             toggleHandler: function(button, pressed) {
-                for (var i = 0, len = info.controls.length; i < len; i++){
                     if (pressed) {
-                        info.controls[i].activate();
+                        updateInfo.call(this);
                     } else {
-                        info.controls[i].deactivate();
+                        for(var k in infoControls){
+                            infoControls[k].deactivate();
+                        }
                     }
-                }
-             }
+             },
+             scope : this
         }]);
         var infoButton = this.actions[0].items[0];
 
-        var info = {controls: []};
-        var updateInfo = function() {
+        updateInfo = function() {
+            //do not add controls if button is not active
+            if(!infoButton.pressed) {
+                return;
+            }
             var queryableLayers = this.target.mapPanel.layers.queryBy(function(x){
-                return x.get("queryable");
+                return x.get("queryable") && x.get("layer").visibility === true;
             });
 
             var map = this.target.mapPanel.map;
-            var control;
-            for (var i = 0, len = info.controls.length; i < len; i++){
-                control = info.controls[i];
-                control.deactivate();  // TODO: remove when http://trac.openlayers.org/ticket/2130 is closed
-                control.destroy();
+            
+            //remove not needed controls
+            for(var k in infoControls){
+                var remove = true;
+                queryableLayers.each(function(x){
+                    if(k == x.getLayer().id){
+                        remove = false;
+                        return false;
+                    }
+                });
+                if(remove){
+                    var control = infoControls[k];
+		            control.deactivate();
+		            control.destroy();
+                }
             }
-
-            info.controls = [];
+            
+            //add and activate not added controls
+            
             queryableLayers.each(function(x){
                 var layer = x.getLayer();
-                var vendorParams = Ext.apply({}, this.vendorParams), param;
-                if (this.layerParams) {
-                    for (var i=this.layerParams.length-1; i>=0; --i) {
-                        param = this.layerParams[i].toUpperCase();
-                        vendorParams[param] = layer.params[param];
-                    }
+                if(! (layer.id in infoControls)){
+                    var vendorParams = Ext.apply({}, this.vendorParams), param;
+	                if (this.layerParams) {
+	                    for (var i=this.layerParams.length-1; i>=0; --i) {
+	                        param = this.layerParams[i].toUpperCase();
+	                        vendorParams[param] = layer.params[param];
+	                    }
+	                }
+	                var infoFormat = x.get("infoFormat");
+	                if (infoFormat === undefined) {
+	                    // TODO: check if chosen format exists in infoFormats array
+	                    // TODO: this will not work for WMS 1.3 (text/xml instead for GML)
+	                    infoFormat = this.format == "html" ? "text/html" : "application/vnd.ogc.gml";
+	                }
+	                var control = new OpenLayers.Control.WMSGetFeatureInfo(Ext.applyIf({
+	                    url: layer.url,
+	                    queryVisible: true,
+	                    layers: [layer],
+	                    infoFormat: infoFormat,
+	                    vendorParams: vendorParams,
+	                    eventListeners: {
+	                        getfeatureinfo: function(evt) {
+	                            var title = x.get("title") || x.get("name");
+	                            if (infoFormat == "text/html") {
+	                                var match = evt.text.match(/<body[^>]*>([\s\S]*)<\/body>/);
+	                                if (match && !match[1].match(/^\s*$/)) {
+	                                    this.displayPopup(evt, title, match[1]);
+	                                }
+	                            } else if (infoFormat == "text/plain") {
+	                                this.displayPopup(evt, title, '<pre>' + evt.text + '</pre>');
+	                            } else if (evt.features && evt.features.length > 0) {
+	                                this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
+	                            }
+	                        },
+	                        scope: this
+	                    }
+	                }, this.controlOptions));
+	                map.addControl(control);
+	                infoControls[layer.id] = control;
                 }
-                var infoFormat = x.get("infoFormat");
-                if (infoFormat === undefined) {
-                    // TODO: check if chosen format exists in infoFormats array
-                    // TODO: this will not work for WMS 1.3 (text/xml instead for GML)
-                    infoFormat = this.format == "html" ? "text/html" : "application/vnd.ogc.gml";
-                }
-                var control = new OpenLayers.Control.WMSGetFeatureInfo(Ext.applyIf({
-                    url: layer.url,
-                    queryVisible: true,
-                    layers: [layer],
-                    infoFormat: infoFormat,
-                    vendorParams: vendorParams,
-                    eventListeners: {
-                        getfeatureinfo: function(evt) {
-                            var title = x.get("title") || x.get("name");
-                            if (infoFormat == "text/html") {
-                                var match = evt.text.match(/<body[^>]*>([\s\S]*)<\/body>/);
-                                if (match && !match[1].match(/^\s*$/)) {
-                                    this.displayPopup(evt, title, match[1]);
-                                }
-                            } else if (infoFormat == "text/plain") {
-                                this.displayPopup(evt, title, '<pre>' + evt.text + '</pre>');
-                            } else if (evt.features && evt.features.length > 0) {
-                                this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
-                            }
-                        },
-                        scope: this
-                    }
-                }, this.controlOptions));
-                map.addControl(control);
-                info.controls.push(control);
-                if(infoButton.pressed) {
-                    control.activate();
-                }
+                
+                infoControls[layer.id].activate();
+                
             }, this);
 
         };
@@ -184,6 +204,7 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
         this.target.mapPanel.layers.on("update", updateInfo, this);
         this.target.mapPanel.layers.on("add", updateInfo, this);
         this.target.mapPanel.layers.on("remove", updateInfo, this);
+        this.target.mapPanel.on("afterlayervisibilitychange", updateInfo, this);
         
         return actions;
     },
