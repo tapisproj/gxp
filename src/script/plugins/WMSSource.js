@@ -312,7 +312,7 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
             //baseParams: baseParams,
             format: this.format,
             autoLoad: !lazy,
-            layerParams: {exceptions: null},
+            layerParams: {authentication_token: layerCfgBuilder.getAuthToken()},
             listeners: {
                 load: function() {
                     // The load event is fired even if a bogus capabilities doc 
@@ -651,7 +651,8 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
             var params = {
                 SERVICE: "WMS",
                 VERSION: version,
-                REQUEST: "DescribeLayer"
+                REQUEST: "DescribeLayer",
+                authentication_token: layerCfgBuilder.getAuthToken()
             };
             this.describeLayerStore = new GeoExt.data.WMSDescribeLayerStore({
                 url: this.trimUrl(req.href, params),
