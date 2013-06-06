@@ -654,9 +654,18 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 REQUEST: "DescribeLayer",
                 authentication_token: layerCfgBuilder.getAuthToken()
             };
+            
+            var procUrl = this.trimUrl(req.href, params);
+        
+	        procUrl = OpenLayers.Util.urlAppend(procUrl, 
+	            OpenLayers.Util.getParameterString(params));
+	        
+	        if(this.target.proxy){
+	            procUrl = OpenLayers.Request.makeSameOrigin(procUrl, this.target.proxy);
+	        }
+            
             this.describeLayerStore = new GeoExt.data.WMSDescribeLayerStore({
-                url: this.trimUrl(req.href, params),
-                baseParams: params
+                url: procUrl
             });
         }
     },
