@@ -567,6 +567,19 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 layer: layer
             }, original.data);
             
+            //if layer has styles and legends, modify href
+            if(data.styles && data.styles.length>0){
+                for (var i = 0; i < data.styles.length; i++) {
+                    if(data.styles[i] && data.styles[i].legend && data.styles[i].legend.href){
+                        var procHref = OpenLayers.Util.urlAppend(data.styles[i].legend.href, OpenLayers.Util.getParameterString({authentication_token: layerCfgBuilder.getAuthToken()}));
+				        if(this.target.proxy){
+				            procHref = OpenLayers.Request.makeSameOrigin(procHref, this.target.proxy);
+				        }
+                        data.styles[i].legend.href = procHref;
+                    }
+                }
+            }
+            
             // add additional fields
             var fields = [
                 {name: "source", type: "string"}, 
