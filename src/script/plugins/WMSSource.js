@@ -359,6 +359,15 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                             } else {
                                 details = "Status: " + status;
                             }
+                            if(response.status){
+                                msg = msg + "<br>Kļūda:" + response.status;
+                            }
+                            if(response.statusText){
+                                msg = msg + "<br>" + response.statusText;
+                            }
+                            if(response.responseText){
+                                msg = msg + "<br>" + response.responseText;
+                            }
                         }
                     } else {
                         msg = "Trouble creating layer store from response.";
