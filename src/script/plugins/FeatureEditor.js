@@ -684,7 +684,8 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                         // deactivate will hide the layer, so show it again
                         featureManager.showLayer(this.id, this.showSelectedOnly && "selected");
                     }
-                    var popup = this.addOutput(Ext.apply({
+                    
+                    var popupCfg = {
                         xtype: "gxp_featureeditpopup",
                         collapsible: true,
                         feature: featureStore.getByFeature(feature),
@@ -794,7 +795,15 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                             },
                             scope: this
                         }
-                    },  this.popupConfig ? this.popupConfig:{}));
+                    };
+                    
+                    Ext.apply(popupCfg, this.popupConfig ? this.popupConfig:{});
+                    if(this.popupConfig && this.popupConfig.tools){
+                        popupCfg.tools = [].concat(this.popupConfig.tools);
+                    }
+                    
+                    var popup = this.addOutput(popupCfg);
+                    
                     this.popup = popup;
                 }
     }
