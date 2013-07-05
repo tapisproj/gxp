@@ -119,7 +119,7 @@ gxp.plugins.WMSCSource = Ext.extend(gxp.plugins.WMSSource, {
                         var bbox = tileSet.bbox[srs].bbox;
                         layer.projection = tileProjection;
                         layer.addOptions({
-                            resolutions: tileSet.resolutions,
+                            resolutions: config.resolutions? config.resolutions : tileSet.resolutions,
                             tileSize: new OpenLayers.Size(tileSet.width, tileSet.height),
                             tileOrigin: new OpenLayers.LonLat(bbox[0], bbox[1])
                         });
