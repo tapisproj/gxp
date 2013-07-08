@@ -705,13 +705,17 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                                 }
                                 if(feature.layer && feature.layer.selectedFeatures.indexOf(feature) !== -1) {
                                     this.selectControl.unselect(feature);
+                                }else{
+                                    if (feature) {
+					                    this.fireEvent("featureeditable", this, feature, false);
+					                }
                                 }
                                 if (feature === this.autoLoadedFeature) {
                                     if (feature.layer) {
-                                        feature.layer.destroyFeatures([feature]); 
+                                        feature.layer.destroyFeatures([feature]);
                                     }
                                     this.autoLoadedFeature = null;
-                                    featureStore.removed = []; 
+                                    featureStore.removed = [];
                                 }
                             },
                             "featuremodified": function(popup, feature) {
