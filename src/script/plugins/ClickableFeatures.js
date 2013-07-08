@@ -113,11 +113,13 @@ gxp.plugins.ClickableFeatures = Ext.extend(gxp.plugins.Tool, {
         var evtLL = this.target.mapPanel.map.getLonLatFromPixel(evt.xy);
         var featureManager = this.target.tools[this.featureManager];
         var page = featureManager.page;
-        if (featureManager.visible() == "all" && featureManager.paging && page && page.extent.containsLonLat(evtLL)) {
+        //if (featureManager.visible() == "all" && featureManager.paging && page && page.extent.containsLonLat(evtLL)) {
             // no need to load a different page if the clicked location is
             // inside the current page bounds and all features are visible
-            return;
-        }
+          //  return;
+        //}
+        
+        featureManager.clearFeatures();
 
         var layer = featureManager.layerRecord && featureManager.layerRecord.getLayer();
         if (!layer) {
