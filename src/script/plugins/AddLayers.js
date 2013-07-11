@@ -418,11 +418,15 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                 }
             }, this);
         }
-
-        source = this.target.layerSources[data[idx][0]];
+        
+        if(data[idx]){
+            source = this.target.layerSources[data[idx][0]];
+        }else{
+            source = null;
+        }
 
         var capGridPanel = new Ext.grid.GridPanel({
-            store: source.store,
+            store: source?source.store:[],
             autoScroll: true,
             autoExpandColumn: "title",
             plugins: [expander],
@@ -450,7 +454,7 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
             allowBlank: false,
             forceSelection: true,
             mode: "local",
-            value: data[idx][0],
+            value: data[idx]?data[idx][0]:null,
             listeners: {
                 select: function(combo, record, index) {
                     var id = record.get("id");
@@ -614,7 +618,9 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                 },
                 show: function(win) {
                     if (this.selectedSource === null) {
-                        this.setSelectedSource(this.target.layerSources[data[idx][0]]);
+                        if(data[idx]){
+                           this.setSelectedSource(this.target.layerSources[data[idx][0]]); 
+                        }                       
                     } else {
                         this.setSelectedSource(this.selectedSource);
                     }
