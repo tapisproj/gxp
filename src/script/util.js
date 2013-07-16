@@ -111,11 +111,12 @@ gxp.util = {
     getAbsoluteUrl: function(url) {
         var a;
         if(Ext.isIE6 || Ext.isIE7 || Ext.isIE8) {
-            a = document.createElement("<a href='" + url + "'/>");
-            a.style.display = "none";
-            document.body.appendChild(a);
-            a.href = a.href;
-            document.body.removeChild(a);
+            var escapeHTML = function(s) {
+			    return s.split('&').join('&amp;').split('<').join('&lt;').split('"').join('&quot;');
+			};
+		    var el= document.createElement('div');
+		    el.innerHTML= '<a href="'+escapeHTML(url)+'">x</a>';
+		    a = el.firstChild;
         } else {
             a = document.createElement("a");
             a.href = url;
