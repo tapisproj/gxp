@@ -574,8 +574,15 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 fixed: config.fixed,
                 selected: "selected" in config ? config.selected : false,
                 restUrl: this.restUrl,
-                layer: layer
-            }, original.data);
+                layer: layer,
+                abstract: config.abstract
+             }, original.data);
+             
+             if(config.abstractToAdd){
+                data.abstract = original.data.abstract ? original.data.abstract + config.abstractToAdd : config.abs;
+             }
+            
+
             
             //if layer has styles and legends, modify href
             if(data.styles && data.styles.length>0){
