@@ -73,9 +73,15 @@ gxp.plugins.ZoomToLayerExtent = Ext.extend(gxp.plugins.ZoomToExtent, {
 
         this.target.on("layerselectionchange", function(record) {
             this.selectedRecord = record;
-            actions[0].setDisabled(
-                !record || !record.get('layer')
-            );
+            var disable = !record || !record.get('layer');
+             if(!disable){
+                var zoom = this.target.mapPanel.map.getZoomForExtent(this.extent(), this.closest);
+                var zoomResolution = this.target.mapPanel.map.resolutions[zoom];
+                if(record.get('layer').resolutions.indexOf(zoomResolution)<0){
+                        disable = true;
+                }
+             }
+             actions[0].setDisabled(disable);
         }, this);
 
         return actions;
