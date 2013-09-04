@@ -575,11 +575,11 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 selected: "selected" in config ? config.selected : false,
                 restUrl: this.restUrl,
                 layer: layer,
-                abstract: config.abstract
+                "abstract": config["abstract"]
              }, original.data);
              
              if(config.abstractToAdd){
-                data.abstract = original.data.abstract ? original.data.abstract + config.abstractToAdd : config.abs;
+                data["abstract"] = original.data["abstract"] ? original.data["abstract"] + config.abstractToAdd : config.abs;
              }
             
 
