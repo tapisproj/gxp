@@ -129,7 +129,7 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
                 return;
             }
             var queryableLayers = this.target.mapPanel.layers.queryBy(function(x){
-                return x.get("queryable") && x.get("layer").visibility === true;
+                return (x.get("queryable") || x.get("info_sublayers")) && x.get("layer").visibility === true && x.get("layer").inRange !== false;
             });
 
             var map = this.target.mapPanel.map;
@@ -147,6 +147,7 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
                     var control = infoControls[k];
 		            control.deactivate();
 		            control.destroy();
+		            delete infoControls[k];
                 }
             }
             
@@ -154,6 +155,7 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
             
             queryableLayers.each(function(x){
                 var layer = x.getLayer();
+                var subLayers = x.get("info_sublayers");
                 if(! (layer.id in infoControls)){
                     var vendorParams = Ext.apply({}, this.vendorParams), param;
 	                if (this.layerParams) {
@@ -166,11 +168,19 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 	                if (infoFormat === undefined) {
 	                    // TODO: check if chosen format exists in infoFormats array
 	                    // TODO: this will not work for WMS 1.3 (text/xml instead for GML)
-	                    infoFormat = this.format == "html" ? "text/html" : "application/vnd.ogc.gml";
+	                    if(this.format == "html"){
+	                    	infoFormat = "text/html";
+	                    } else {
+	                    	var gmlFormat = "application/vnd.ogc.gml";
+	                    	if(x.get("infoFormats") && x.get("infoFormats").indexOf(gmlFormat) > -1){
+	                    		infoFormat = gmlFormat;
+	                    	} else {
+	                    		infoFormat = "text/html";
+	                    	}
+	                    }
 	                }
 	                var control = new OpenLayers.Control.WMSGetFeatureInfo(Ext.applyIf({
-	                    url: layer.url,
-	                    queryVisible: true,
+	                    url: subLayers ? x.get("info_sublayers_url") : layer.url,
 	                    layers: [layer],
 	                    infoFormat: infoFormat,
 	                    vendorParams: vendorParams,
@@ -191,6 +201,12 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 	                        scope: this
 	                    }
 	                }, this.controlOptions));
+	                /*if(subLayers){
+	                	control.buildWMSOptions = function(url, layers, clickPosition, format){
+	                		var wmsOpt = OpenLayers.Control.WMSGetFeatureInfo.prototype.buildWMSOptions.apply(this, arguments);
+	                		return wmsOpt;
+	                	};
+	                }*/
 	                map.addControl(control);
 	                infoControls[layer.id] = control;
                 }
@@ -282,10 +298,11 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
                 }, this.itemConfig));
             }
         } else if (text) {
-            config.push(Ext.apply({
+            config.push({
                 title: title,
-                html: text
-            }, this.itemConfig));
+                html: text,
+                collapsed : true
+            });
         }
         popup.info_container.add(config);
         popup.doLayout();
