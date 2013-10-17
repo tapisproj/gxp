@@ -201,12 +201,16 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 	                        scope: this
 	                    }
 	                }, this.controlOptions));
-	                /*if(subLayers){
+	                if(subLayers){
+	                	control.subLayers = subLayers;
 	                	control.buildWMSOptions = function(url, layers, clickPosition, format){
 	                		var wmsOpt = OpenLayers.Control.WMSGetFeatureInfo.prototype.buildWMSOptions.apply(this, arguments);
+	                		var queryLayers = this.subLayers.split(",");
+	                		wmsOpt.params.LAYERS = queryLayers;
+	                		wmsOpt.params.QUERY_LAYERS = queryLayers;
 	                		return wmsOpt;
 	                	};
-	                }*/
+	                }
 	                map.addControl(control);
 	                infoControls[layer.id] = control;
                 }
