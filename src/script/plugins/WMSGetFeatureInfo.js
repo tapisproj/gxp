@@ -194,6 +194,29 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 	                                }
 	                            } else if (infoFormat == "text/plain") {
 	                                this.displayPopup(evt, title, '<pre>' + evt.text + '</pre>');
+	                            } else if (infoFormat == "application/vnd.esri.wms_featureinfo_xml") {
+	                                var xmlReader = new OpenLayers.Format.XML();
+	                                var data = xmlReader.read(evt.text);
+	                                var allFeatureInfos = data.documentElement.getElementsByTagName("FeatureInfo");
+	                                var features = [];
+							        for(var i=0; i<allFeatureInfos.length; i++) {
+							            var attributes = {};
+							            var fields = allFeatureInfos[i].getElementsByTagName("Field");
+							            for(var j=0; j<fields.length; j++) {
+							            	var ch = fields[j].children;
+							            	if(ch.length!=2){
+							            		continue;
+							            	}
+							            	attributes[ch[0].textContent]=ch[1].textContent;
+							            }
+							            var feature = new OpenLayers.Feature.Vector(null, attributes);
+							            features.push(feature);
+							        }
+							        if (features.length > 0) {
+							        	evt.features = features;
+	                                    this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
+	                                }
+	                                //this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
 	                            } else if (evt.features && evt.features.length > 0) {
 	                                this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
 	                            }
