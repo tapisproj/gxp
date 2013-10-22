@@ -577,7 +577,8 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 layer: layer,
                 "abstract": config["abstract"],
                 "info_sublayers": config["info_sublayers"],
-                "info_sublayers_url": config["info_sublayers_url"]
+                "info_sublayers_url": config["info_sublayers_url"],
+                "key": config["key"]
              }, original.data);
              
              if(config.abstractToAdd){
