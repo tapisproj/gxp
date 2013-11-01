@@ -487,6 +487,31 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
         var index = this.store.findExact("name", config.name);
         if (index > -1) {
             original = this.store.getAt(index);
+        } else if(config.name.contains(",")){
+        	//layer should be build from multiple wms layers
+        	//for now just grab first matching layer and copy it
+        	var groupLayers = config.name.split(",");
+        	var origRec = null;
+        	this.store.each(function(r){
+        		var n = r.get("name");
+        		for (var i = 0; i < groupLayers.length; i++) {
+        			if(groupLayers[i]==n){
+        				origRec = r;
+        				return false;
+        			}
+        		}
+        	});
+        	if(origRec){
+        		original = origRec.copy();
+                Ext.data.Record.id(original);
+                original.setLayer(new OpenLayers.Layer.WMS(config.title || config.name, 
+                                    config.url || this.url, {
+									layers : config.name,
+									transparent : "transparent" in config ? config.transparent : true,
+									cql_filter : config.cql_filter,
+									format : config.format
+								}));
+        	}
         } else if (Ext.isObject(config.capability)) {
             original = this.store.reader.readRecords({capability: {
                 request: {getmap: {href: this.trimUrl(this.url, this.baseParams)}},
