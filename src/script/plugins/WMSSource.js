@@ -487,7 +487,7 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
         var index = this.store.findExact("name", config.name);
         if (index > -1) {
             original = this.store.getAt(index);
-        } else if(config.name.contains(",")){
+        } else if(config.name.indexOf(",") > 0){
         	//layer should be build from multiple wms layers
         	//for now just grab first matching layer and copy it
         	var groupLayers = config.name.split(",");
