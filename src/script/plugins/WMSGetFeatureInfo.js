@@ -222,9 +222,10 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 	                            } else if (evt.features && evt.features.length > 0) {
 	                                this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
 	                            }
+	                            this.unRegisterPopup(evt);
 	                        },
 	                        beforegetfeatureinfo: function(evt) {
-	                        	this.displayPopup(evt);
+	                        	this.registerPopup(evt);
 	                        },
 	                        scope: this
 	                    }
@@ -256,6 +257,30 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
         
         return actions;
     },
+    
+    registerPopup: function(evt){
+    	var popupKey = this.getPopupKey(evt);
+    	var popup = this.popupCache[popupKey];
+    	if(!popup){
+    		this.displayPopup.apply(this,arguments);
+    	}else if(popup.popup_closed===true){
+    		delete this.popupCache[popupKey];
+    		this.displayPopup.apply(this,arguments);
+    	}
+    	popup = this.popupCache[popupKey];
+    	popup.registerFeatureRequest();
+    },
+    
+    unRegisterPopup: function(evt){
+    	var popup = this.popupCache[this.getPopupKey(evt)];
+    	if(popup){
+    		popup.unregisterFeatureRequest();
+    	}
+    },
+    
+    getPopupKey: function(evt){
+    	return evt.xy.x + "." + evt.xy.y;
+    },
 
     /** private: method[displayPopup]
      * :arg evt: the event object from a 
@@ -266,7 +291,7 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
      */
     displayPopup: function(evt, title, text, featureinfo) {
         var popup;
-        var popupKey = evt.xy.x + "." + evt.xy.y;
+        var popupKey = this.getPopupKey(evt);
         featureinfo = featureinfo || {};
         if (!(popupKey in this.popupCache)) {
             popup = this.addOutput({
@@ -281,7 +306,7 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
                 listeners: {
                     close: (function(key) {
                         return function(panel){
-                            delete this.popupCache[key];
+                        	this.popupCache[key].popup_closed=true;
                         };
                     })(popupKey),
                     scope: this
@@ -291,23 +316,50 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
                          value: "<p>&nbsp;&nbsp;&nbsp;Meklēts tiek kartē redzamajos slāņos</p>",
                          cls : "geokods-crosslayerqueryform-limit-msg",
                          hideLabel : true
-                       },{
-                   ref: "info_container",
-                   layout: "accordion",
-                   defaults: {
+                   },{
+                         xtype: 'progress',
+                         ref: "progress",
+                         height:10
+                   },{
+                       ref: "info_container",
+                       layout: "accordion",
+                       defaults: {
                        layout: "fit",
                        autoScroll: true,
                        autoHeight: true,
                        autoWidth: true,
                        collapsible: true
                    }
-                }]
-            },{
-                         
-                       });
+                }],
+                registerFeatureRequest:function(){
+                	if(this.popup_closed==null || this.popup_closed===false){
+                		this.registerReq++;
+                	    this.progress.updateProgress(this.unRegisterReq/this.registerReq);
+                	    if(this.progress.hidden){
+                	    	this.progress.show();
+                	    }
+                	}   
+                },
+                unregisterFeatureRequest:function(){
+                	if(this.popup_closed==null || this.popup_closed===false){
+                	    this.unRegisterReq++;
+                	    this.progress.updateProgress(this.unRegisterReq/this.registerReq);
+                	    if(this.unRegisterReq >= this.registerReq){
+                	    	this.progress.hide();
+                	    }
+                	}
+                }
+            },{});
             this.popupCache[popupKey] = popup;
+            popup.registerReq = 0;
+            popup.unRegisterReq = 0;
         } else {
             popup = this.popupCache[popupKey];
+        }
+        
+        if(popup.popup_closed===true){
+        	//popup is already closed
+        	return;
         }
 
         var features = evt.features, config = [];
