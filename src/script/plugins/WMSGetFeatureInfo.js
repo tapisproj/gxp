@@ -202,12 +202,14 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 							        for(var i=0; i<allFeatureInfos.length; i++) {
 							            var attributes = {};
 							            var fields = allFeatureInfos[i].getElementsByTagName("Field");
-							            for(var j=0; j<fields.length; j++) {
-							            	var ch = fields[j].children;
-							            	if(ch.length!=2){
-							            		continue;
-							            	}
-							            	attributes[ch[0].textContent]=ch[1].textContent;
+							            if(fields){
+							            	for(var j=0; j<fields.length; j++) {
+							            	    var fn = fields[j].getElementsByTagName("FieldName");
+							            	    var fv = fields[j].getElementsByTagName("FieldValue");
+							            	    if (fn && fn[0].childNodes.length > 0 && fv && fv[0].childNodes.length > 0) {
+													attributes[fn[0].childNodes[0].nodeValue] = fv[0].childNodes[0].nodeValue;
+												}
+							                }
 							            }
 							            var feature = new OpenLayers.Feature.Vector(null, attributes);
 							            features.push(feature);
@@ -220,6 +222,9 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 	                            } else if (evt.features && evt.features.length > 0) {
 	                                this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
 	                            }
+	                        },
+	                        beforegetfeatureinfo: function(evt) {
+	                        	this.displayPopup(evt);
 	                        },
 	                        scope: this
 	                    }
