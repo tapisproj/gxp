@@ -103,6 +103,9 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
         var updateInfo;
         var infoControls = {};
         
+        var gmlFormat = "application/vnd.ogc.gml";
+        var esriFormat = "application/vnd.esri.wms_featureinfo_xml";
+        
         var actions = gxp.plugins.WMSGetFeatureInfo.superclass.addActions.call(this, [{
             tooltip: this.infoActionTip,
             iconCls: "gxp-icon-getfeatureinfo",
@@ -166,17 +169,20 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 	                }
 	                var infoFormat = x.get("infoFormat");
 	                if (infoFormat === undefined) {
-	                    // TODO: check if chosen format exists in infoFormats array
-	                    // TODO: this will not work for WMS 1.3 (text/xml instead for GML)
 	                    if(this.format == "html"){
 	                    	infoFormat = "text/html";
 	                    } else {
-	                    	var gmlFormat = "application/vnd.ogc.gml";
-	                    	if(x.get("infoFormats") && x.get("infoFormats").indexOf(gmlFormat) > -1){
-	                    		infoFormat = gmlFormat;
-	                    	} else {
-	                    		infoFormat = "text/html";
+	                    	var infoFormats = x.get("infoFormats");
+	                    	if(infoFormats){
+	                    		if(infoFormats.indexOf(gmlFormat) > -1){
+	                    		    infoFormat = gmlFormat;
+	                    	    } else if(infoFormats.indexOf(esriFormat) > -1){
+	                    		    infoFormat = esriFormat;
+	                    	    } else {
+	                    		    infoFormat = "text/html";
+	                    	    }
 	                    	}
+	                    	
 	                    }
 	                }
 	                var control = new OpenLayers.Control.WMSGetFeatureInfo(Ext.applyIf({
@@ -194,7 +200,7 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
 	                                }
 	                            } else if (infoFormat == "text/plain") {
 	                                this.displayPopup(evt, title, '<pre>' + evt.text + '</pre>');
-	                            } else if (infoFormat == "application/vnd.esri.wms_featureinfo_xml") {
+	                            } else if (infoFormat == esriFormat) {
 	                                var xmlReader = new OpenLayers.Format.XML();
 	                                var data = xmlReader.read(evt.text);
 	                                var allFeatureInfos = data.documentElement.getElementsByTagName("FeatureInfo");
