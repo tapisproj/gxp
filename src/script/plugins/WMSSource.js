@@ -556,6 +556,7 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
             // update params from config
             layer.mergeNewParams({
                 STYLES: config.styles,
+                SLD: config.sld,
                 FORMAT: config.format,
                 TRANSPARENT: config.transparent,
                 CQL_FILTER: config.cql_filter
